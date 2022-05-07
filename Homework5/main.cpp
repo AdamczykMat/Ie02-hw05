@@ -17,6 +17,7 @@ public:
 
     void animate(const sf::Time &elapsed){
         bouncce();
+        bouncce_wall();
         float dt = elapsed.asSeconds();
         move(x_speed_*dt,y_speed_*dt);
     }
@@ -27,6 +28,13 @@ public:
         u_bound_  = u_bound  ;
         d_bound_  = d_bound  ;
     }
+    void setWallBounds(const float& l_bound, const float& r_bound,const float& u_bound,const float& d_bound){
+        wall_l_bound_  = l_bound  ;
+        wall_r_bound_  = r_bound  ;
+        wall_u_bound_  = u_bound  ;
+        wall_d_bound_  = d_bound  ;
+    }
+
 
 private:
     int x_speed_ = 0 ;
@@ -35,6 +43,11 @@ private:
     float r_bound_ = 0;
     float u_bound_ = 0;
     float d_bound_ = 0;
+
+    float wall_l_bound_ = 0;
+    float wall_r_bound_ = 0;
+    float wall_u_bound_ = 0;
+    float wall_d_bound_ = 0;
 
 
     void bouncce(){
@@ -54,13 +67,28 @@ private:
         {x_speed_ = abs(x_speed_) * -1;}
     }
 
+    void bouncce_wall(){
+        sf::FloatRect rectangle_bounds = getGlobalBounds();
+
+        if((rectangle_bounds.top <= wall_d_bound_ && rectangle_bounds.top >= wall_u_bound_) && (rectangle_bounds.left <= wall_r_bound_ && rectangle_bounds.left + rectangle_bounds.width >= wall_l_bound_))
+        {y_speed_ = abs(y_speed_);
+        std::cout << "Colision up" << std::endl;}
+        else if((rectangle_bounds.top + rectangle_bounds.height >= wall_u_bound_ && rectangle_bounds.top <= wall_d_bound_)&&(rectangle_bounds.left <= wall_r_bound_ && rectangle_bounds.left + rectangle_bounds.width  >= wall_l_bound_))
+        {y_speed_ = abs(y_speed_) * -1;
+        std::cout << "Colision down" << std::endl;}
+        else if((rectangle_bounds.left <= wall_r_bound_ && rectangle_bounds.left >= wall_l_bound_) && (rectangle_bounds.top + rectangle_bounds.height >= wall_u_bound_ && rectangle_bounds.top <= wall_d_bound_))
+        {x_speed_ = abs(x_speed_);
+        std::cout << "Colision right" << std::endl;}
+        else if((rectangle_bounds.left <= wall_r_bound_ && rectangle_bounds.left + rectangle_bounds.width >= wall_l_bound_) && (rectangle_bounds.top + rectangle_bounds.height >= wall_u_bound_ && rectangle_bounds.top <= wall_d_bound_))
+        {x_speed_ = abs(x_speed_) * -1;
+        std::cout << "Colision left" << std::endl;}
+    }
+
 };
 
 void create_shapes(std::vector<std::unique_ptr<sf::Drawable>> &shapes_vec){
 
 }
-
-
 
 
 int main() {
@@ -94,9 +122,9 @@ int main() {
     texture_wall.setRepeated(true);
     sf::Sprite wall;
     wall.setTexture(texture_wall);
-    wall.setScale(0.3, 0.3);
-    wall.setTextureRect(sf::IntRect(0, 0, 500, 500));
-    wall.setPosition(100.0,50.0);
+//    wall.setScale(0.25,0.25);
+    wall.setTextureRect(sf::IntRect(0, 0, 300, 300));
+    wall.setPosition(100.0,150.0);
 
     //--------
 
@@ -110,6 +138,9 @@ int main() {
 
 
     guy.setBounds(0, window.getSize().x, 0, window.getSize().y);
+    guy.setWallBounds(wall.getGlobalBounds().left , wall.getGlobalBounds().left + wall.getTextureRect().width ,wall.getGlobalBounds().top , wall.getGlobalBounds().top + wall.getTextureRect().height);
+
+    std::cout << wall.getGlobalBounds().left <<"/"<< wall.getGlobalBounds().left + wall.getTextureRect().width <<"/"<<wall.getGlobalBounds().top <<"/"<< wall.getGlobalBounds().top + wall.getTextureRect().height;
     while (window.isOpen()) {
         sf::Time elapsed = clock.restart();
 
